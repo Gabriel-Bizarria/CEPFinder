@@ -17,6 +17,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.haroldadmin.cnradapter.NetworkResponse
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -35,7 +36,8 @@ class BottomFragment() : BottomSheetDialogFragment() {
     ): View? {
         _binding = FragmentBottomBinding.inflate(inflater, container, false)
 
-        mapFragment = childFragmentManager.findFragmentById(R.id.maps_fragment) as SupportMapFragment
+        mapFragment =
+            childFragmentManager.findFragmentById(R.id.maps_fragment) as SupportMapFragment
 
         return binding.root
     }
@@ -44,19 +46,25 @@ class BottomFragment() : BottomSheetDialogFragment() {
         super.onResume()
 
         viewModel.addressLiveData.observe(viewLifecycleOwner) { response ->
-            Log.v("ADRESS_LIVEDATA", "$response")
-            binding.cepTv.text = response.cep
-            binding.cityTv.text = response.city
-            binding.stateTv.text = response.state
-            binding.streetTv.text = response.address
+            if(response.address != "N/A"){
+                binding.errorConstraint.visibility = View.GONE
+                binding.mainConstraint.visibility = View.VISIBLE
+                binding.cepTv.text = response.cep
+                binding.cityTv.text = response.city
+                binding.stateTv.text = response.state
+                binding.streetTv.text = response.address
 
-            mapFragment.getMapAsync { map ->
-                addMarkers(map, response)
+                mapFragment.getMapAsync { map ->
+                    addMarkers(map, response)
+                }
+            }else{
+                binding.progressBar.visibility = View.GONE
+                binding.phraseError.visibility = View.VISIBLE
             }
         }
     }
 
-    private fun addMarkers(map: GoogleMap, localization: CepResponse){
+    private fun addMarkers(map: GoogleMap, localization: CepResponse) {
         val latLng = LatLng(localization.lat.toDouble(), localization.lng.toDouble())
         Log.v("LAT_LNG", "${localization.lat}, ${localization.lng}")
         map.addMarker(
@@ -66,11 +74,6 @@ class BottomFragment() : BottomSheetDialogFragment() {
                 .snippet("${localization.address}, ${localization.city}, ${localization.state}")
         )
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
-    }
-
-    override fun onPause() {
-        super.onPause()
-        onDestroyView()
     }
 
     override fun onDestroyView() {

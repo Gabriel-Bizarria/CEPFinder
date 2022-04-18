@@ -31,31 +31,15 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         binding.btSearch.setOnClickListener {
             val cep = binding.cepInput.text.toString()
             if(!binding.cepInput.text.isNullOrEmpty() && cep.length == 8){
                 viewModel.contactApi(cep)
+                var bottomSheet = BottomFragment()
+                bottomSheet.show(childFragmentManager, "OPENED_BOTTOM_SHEET")
             }else{
                 Toast.makeText(requireContext(), "CEP Invalid", Toast.LENGTH_SHORT).show()
             }
-        }
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.addressLiveData.observe(viewLifecycleOwner){
-            var bottomSheet = BottomFragment()
-            bottomSheet.show(childFragmentManager, "OPENED_BOTTOM_SHEET")
-        }
-
-        viewModel.errorLiveData.observe(viewLifecycleOwner){
-            Toast.makeText(
-                requireContext(),
-                "CEP não encontrado ou não existe",
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
